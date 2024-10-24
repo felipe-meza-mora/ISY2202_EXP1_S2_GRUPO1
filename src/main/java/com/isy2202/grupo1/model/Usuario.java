@@ -20,12 +20,15 @@ public class Usuario {
     @Column(name = "password", nullable = false)
     private String password;
 
+    private String role;
+
     public Usuario() {}
 
-    public Usuario(String nombre, String correo, String password) {
+    public Usuario(String nombre, String correo, String password, String role) {
         this.nombre = nombre;
         this.correo = correo;
         this.password = password;
+        this.role = role;
     }
 
     // Getters y Setters
@@ -59,5 +62,13 @@ public class Usuario {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 }

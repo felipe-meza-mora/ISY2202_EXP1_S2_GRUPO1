@@ -1,29 +1,37 @@
 package com.isy2202.grupo1.config;
 
+import org.springframework.security.core.userdetails.User;
+import com.isy2202.grupo1.model.Usuario;
+import com.isy2202.grupo1.service.UsuarioService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig {
 
+    @Autowired
+    private UsuarioService usuarioService;
+
     @Bean
     public UserDetailsService userDetailsService() {
-        UserDetails user = User.builder()
-                .username("admin")
-                .password(passwordEncoder().encode("admin")) 
-                .roles("USER")
-                .build();
-
-        return new InMemoryUserDetailsManager(user);
+        return (String correo) -> usuarioService.findByCorreo(correo)
+                .map((Usuario usuario) -> {
+                    return User.builder()
+                            .username(usuario.getCorreo())
+                            .password(usuario.getPassword())
+                            .roles(usuario.getRole())
+                            .build();
+                })
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado con correo: " + correo));
     }
 
     @Bean
@@ -32,7 +40,7 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    public org.springframework.security.web.SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests((requests) -> requests
                 .requestMatchers("/", "/home", "/login", "/css/**", "/js/**", "/img/**").permitAll()
@@ -53,6 +61,5 @@ public class WebSecurityConfig {
     
         return http.build();
     }
-    
-    
+
 }
